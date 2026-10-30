@@ -36,13 +36,10 @@ export default function ReduxLiveInspector() {
   const canAttack = !isDefeated && !bossDefeated;
 
   const handleAttack = () => {
-    const nextBossHp = applyAttack(bossHp, combatPower);
-    setBossHp(nextBossHp);
-    // Si el Boss sigue en pie, contraataca: esto SÍ va al store, porque el HP
-    // del héroe lo comparten el avatar, las barras y la consola.
-    if (nextBossHp > 0) {
-      dispatch(takeDamage(getBossRetaliation(totalStats.agi, isOverloaded)));
-    }
+    setBossHp(applyAttack(bossHp, combatPower));
+    // El Boss contraataca: esto SÍ va al store, porque el HP del héroe lo
+    // comparten el avatar, las barras y la consola.
+    dispatch(takeDamage(getBossRetaliation(totalStats.agi, isOverloaded)));
   };
 
   return (
