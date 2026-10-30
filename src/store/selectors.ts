@@ -25,6 +25,9 @@ export interface HeroVisualClass {
 
 const RECENT_LOG_SIZE = 5;
 
+// Escala visual de la barra de maná (con INT 15 + equipo mágico ≈ 145-175)
+export const MANA_BAR_SCALE = 200;
+
 // ── Selectores base (lectura directa del state) ─────────────────────────────
 export const selectStats = (state: RootState) => state.stats;
 export const selectCurrentHp = (state: RootState) => state.stats.currentHp;
@@ -38,14 +41,21 @@ export const selectEquippedItems = createSelector(
   (catalog, equippedIds) => catalog.filter((item) => equippedIds.includes(item.id)),
 );
 
+// Suma de bonos de todo el equipo (Zona B la muestra como "+N equipo")
+export const selectEquipmentBonus = createSelector([selectEquippedItems], (items) => ({
+  str: items.reduce((acc, i) => acc + i.bonusStr, 0),
+  agi: items.reduce((acc, i) => acc + i.bonusAgi, 0),
+  int: items.reduce((acc, i) => acc + i.bonusInt, 0),
+}));
+
 // 🎥 VIDEO: cruza DOS slices (stats + inventory). Si STR total estuviera
 // guardado, equipar un ítem obligaría a tocar también statsSlice.
 export const selectTotalStats = createSelector(
-  [selectStats, selectEquippedItems],
-  (stats, items) => ({
-    str: stats.str + items.reduce((acc, i) => acc + i.bonusStr, 0),
-    agi: stats.agi + items.reduce((acc, i) => acc + i.bonusAgi, 0),
-    int: stats.int + items.reduce((acc, i) => acc + i.bonusInt, 0),
+  [selectStats, selectEquipmentBonus],
+  (stats, bonus) => ({
+    str: stats.str + bonus.str,
+    agi: stats.agi + bonus.agi,
+    int: stats.int + bonus.int,
   }),
 );
 
