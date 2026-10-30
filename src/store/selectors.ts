@@ -1,5 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from './index';
+import { toggleEquipItem } from './slices/inventorySlice';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // REGLA DE ORO: ESTADO DERIVADO
@@ -133,6 +134,22 @@ export const selectEquippedWeaponIcon = createSelector(
 
 export const selectRecentLogEntries = createSelector([selectActionLogEntries], (entries) =>
   entries.slice(0, RECENT_LOG_SIZE),
+);
+
+// Líneas listas para la consola. El log guarda el payload crudo (el id del
+// ítem); aquí, solo al MOSTRARLO, se traduce a su nombre usando el catálogo.
+export const selectRecentLogLines = createSelector(
+  [selectRecentLogEntries, selectCatalog],
+  (entries, catalog) =>
+    entries.map((entry) => {
+      let payload = entry.payload;
+      if (entry.type === toggleEquipItem.type) {
+        const id: unknown = JSON.parse(entry.payload);
+        const item = catalog.find((i) => i.id === id);
+        if (item) payload = JSON.stringify(item.name);
+      }
+      return { id: entry.id, text: `[${entry.type}] -> ${payload}` };
+    }),
 );
 
 // 🎥 VIDEO: equivalente memoizado al selector de referencia del enunciado,
